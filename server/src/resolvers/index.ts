@@ -1,0 +1,1 @@
+export { NFTResolver } from './NFTResolver';
