@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
-import { NFTResolver } from './resolvers/';
+import { NFTResolver, UserResolver } from './resolvers/';
 import { createConnection } from 'typeorm';
 
 // Get environment variables
@@ -13,7 +13,7 @@ const main = async () => {
     await createConnection();
 
     const schema = await buildSchema({
-        resolvers: [NFTResolver],
+        resolvers: [NFTResolver, UserResolver],
         validate: false,
     });
 

@@ -4,23 +4,35 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '.';
 
 @Entity()
 @ObjectType()
 export class NFT extends BaseEntity {
     @Field(() => ID)
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Field()
     @Column()
-    name: string;
+    title: string;
+
+    @Field()
+    @Column({ name: 'short_description' })
+    shortDescription: string;
+
+    @Field()
+    @Column({ name: 'long_description' })
+    longDescription: string;
 
     @Field()
     @Column()
-    description: string;
+    category: string;
 
     @Field()
     @Column({ name: 'image_uri' })
@@ -35,6 +47,18 @@ export class NFT extends BaseEntity {
     createdAt: Date;
 
     @Field()
-    @Column({ name: 'creator_id' })
+    @Column()
     creatorId: string;
+
+    @Field(() => User)
+    @ManyToOne(() => User, (user) => user.nfts)
+    creator: User;
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    upvotes?: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    favorites?: User[];
 }

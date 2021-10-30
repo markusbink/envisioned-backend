@@ -3,14 +3,20 @@ import { Field, InputType } from 'type-graphql';
 @InputType()
 export class UpdateNFTInput {
     @Field({ nullable: true })
-    name?: string;
+    title?: string;
 
     @Field({ nullable: true })
-    description?: string;
+    shortDescription?: string;
 
     @Field({ nullable: true })
-    image_uri?: string;
+    longDescription?: string;
 
     @Field({ nullable: true })
-    source_uri?: string;
+    category?: string;
+
+    @Field({ nullable: true })
+    imageURI?: string;
+
+    @Field({ nullable: true })
+    sourceURI?: string;
 }

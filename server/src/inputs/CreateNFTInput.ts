@@ -1,19 +1,23 @@
 import { Field, InputType } from 'type-graphql';
+import { User } from '../entities';
 
 @InputType()
 export class CreateNFTInput {
     @Field()
-    name: string;
+    title: string;
 
     @Field()
-    description: string;
+    shortDescription: string;
 
     @Field()
-    image_uri: string;
+    longDescription: string;
 
     @Field()
-    source_uri: string;
+    category: string;
 
     @Field()
-    creator_id: string;
+    imageURI: string;
+
+    @Field()
+    sourceURI: string;
 }
