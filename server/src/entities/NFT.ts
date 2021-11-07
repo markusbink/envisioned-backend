@@ -47,7 +47,7 @@ export class NFT extends BaseEntity {
     createdAt: Date;
 
     @Field()
-    @Column()
+    @Column({ name: 'creator_id' })
     creatorId: string;
 
     @Field(() => User)
