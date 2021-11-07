@@ -47,11 +47,11 @@ export class NFT extends BaseEntity {
     createdAt: Date;
 
     @Field()
-    @Column({ name: 'creator_id' })
+    @Column()
     creatorId: string;
 
     @Field(() => User)
-    @ManyToOne(() => User, (user) => user.nfts)
+    @ManyToOne(() => User, (user) => user.nfts, { onDelete: 'CASCADE' })
     creator: User;
 
     @ManyToMany(() => User)
