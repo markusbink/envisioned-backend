@@ -81,8 +81,6 @@ export class UserResolver {
         const hashedOldPassword = await argon2.hash(options.oldPassword);
         const hashedNewPassword = await argon2.hash(options.newPassword);
 
-        console.log({ hashedOldPassword, oldPassword: user.password });
-
         if (!(await argon2.verify(user.password, options.oldPassword))) {
             throw new Error('Invalid old password');
         }
