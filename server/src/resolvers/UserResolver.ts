@@ -10,9 +10,23 @@ import * as argon2 from 'argon2';
 
 @Resolver(User)
 export class UserResolver {
+    /**
+     * Get a single user by id
+     * @param id ID of user
+     * @returns User with specified ID
+     */
     @Query(() => User, { nullable: true })
     async getUser(@Arg('id') id: string): Promise<User | undefined> {
         return await User.findOne({ id });
+    }
+
+    /**
+     * Get all users in the database
+     * @returns A list of all users
+     */
+    @Query(() => [User], { nullable: true })
+    async getUsers(): Promise<User[] | null> {
+        return await User.find();
     }
 
     /**

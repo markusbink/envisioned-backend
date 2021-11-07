@@ -1,7 +1,6 @@
 import { CreateNFTInput, UpdateNFTInput } from '../inputs';
 import { Arg, Int, Mutation, Query, Resolver } from 'type-graphql';
 import { NFT } from '../entities';
-import { StringValueNode } from 'graphql';
 
 @Resolver(NFT)
 export class NFTResolver {
@@ -11,7 +10,7 @@ export class NFTResolver {
      */
     @Query(() => [NFT], { nullable: true })
     async getAllNFTs(): Promise<NFT[] | null> {
-        const nfts = await NFT.find();
+        const nfts = await NFT.find({ relations: ['creator'] });
         return nfts;
     }
 
@@ -22,7 +21,10 @@ export class NFTResolver {
      */
     @Query(() => NFT, { nullable: true })
     async getNFTById(@Arg('id', () => String) id: string): Promise<NFT | null> {
-        const nft = await NFT.findOne({ id });
+        const nft = await NFT.findOne({
+            relations: ['creator'],
+            where: { id },
+        });
         if (!nft) {
             return null;
         }
@@ -55,7 +57,8 @@ export class NFTResolver {
         @Arg('category', () => String) category: string
     ): Promise<NFT[] | null> {
         const nfts = await NFT.find({
-            category,
+            relations: ['creator'],
+            where: { category },
         });
         return nfts;
     }
