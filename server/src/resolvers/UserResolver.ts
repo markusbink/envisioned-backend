@@ -1,12 +1,13 @@
-import { Arg, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import { User } from '../entities';
 import {
+    LoginUserInput,
     RegisterUserInput,
     UpdatePasswordInput,
     UpdateUserInput,
 } from '../inputs';
-import { LoginUserInput } from '../inputs/LoginUserInput';
 import * as argon2 from 'argon2';
+import { ApolloContext } from '../types';
 
 @Resolver(User)
 export class UserResolver {
@@ -30,12 +31,30 @@ export class UserResolver {
     }
 
     /**
+     * Gets currently logged in user
+     * @returns User with specified ID
+     */
+    @Query(() => User, { nullable: true })
+    async currentUser(
+        @Ctx() { req }: ApolloContext
+    ): Promise<User | undefined> {
+        if (!req.session.userId) {
+            return undefined;
+        }
+
+        return await User.findOne({ id: req.session.userId });
+    }
+
+    /**
      * Register a user with specified options
      * @param options Object with user information
      * @returns A new user
      */
     @Mutation(() => User)
-    async register(@Arg('options') options: RegisterUserInput): Promise<User> {
+    async register(
+        @Arg('options') options: RegisterUserInput,
+        @Ctx() { req }: ApolloContext
+    ): Promise<User> {
         // Check if user already exists
         const user = await User.findOne({
             where: [{ username: options.username }, { email: options.email }],
@@ -44,13 +63,19 @@ export class UserResolver {
         if (user) {
             throw new Error('User already exists');
         }
+
         // Hash password
         const hashedPassword = await argon2.hash(options.password);
 
-        return await User.create({
+        const newUser = await User.create({
             ...options,
             password: hashedPassword,
         }).save();
+
+        // Store user id in session
+        req.session.userId = newUser.id;
+
+        return newUser;
     }
 
     /**
@@ -60,18 +85,24 @@ export class UserResolver {
      */
     @Mutation(() => User)
     async login(
-        @Arg('options') options: LoginUserInput
+        @Arg('options') options: LoginUserInput,
+        @Ctx() { req }: ApolloContext
     ): Promise<User | undefined> {
         const user = await User.findOne({ where: { email: options.email } });
         if (!user) {
             throw new Error('User does not exists');
         }
+
         const isValid = await argon2.verify(user.password, options.password);
+
         if (!isValid) {
             throw new Error('Invalid password');
         }
 
-        // user exists and is validated
+        // Store user id in session
+        req.session.userId = user.id;
+
+        // User exists and is validated
         return user;
     }
 
@@ -92,7 +123,6 @@ export class UserResolver {
             throw new Error('User does not exists');
         }
 
-        const hashedOldPassword = await argon2.hash(options.oldPassword);
         const hashedNewPassword = await argon2.hash(options.newPassword);
 
         if (!(await argon2.verify(user.password, options.oldPassword))) {

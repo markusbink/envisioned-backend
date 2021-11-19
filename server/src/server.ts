@@ -5,6 +5,11 @@ import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { NFTResolver, UserResolver } from './resolvers/';
 import { createConnection } from 'typeorm';
+import redis from 'redis';
+import connectRedis from 'connect-redis';
+import session from 'express-session';
+import cors from 'cors';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 
 // Get environment variables
 dotenv.config({ path: './server/.env' });
@@ -12,20 +17,57 @@ dotenv.config({ path: './server/.env' });
 const main = async () => {
     await createConnection();
 
+    // Setting up Redis
+    const RedisStore = connectRedis(session);
+    const redisClient = redis.createClient();
+
+    // Setting up Express
+    const app = express();
+
+    const corsOptions = {
+        origin: 'https://studio.apollographql.com',
+        credentials: true,
+    };
+    app.use(cors(corsOptions));
+
+    // Setting up Sessions
+    app.use(
+        session({
+            name: process.env.SESSION_COOKIE_NAME,
+            store: new RedisStore({
+                client: redisClient,
+                disableTouch: true,
+            }),
+            cookie: {
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+                httpOnly: true,
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+            },
+            saveUninitialized: false,
+            secret: process.env.SESSION_SECRET!,
+            resave: false,
+        })
+    );
+
+    // Setting up Apollo Server
     const schema = await buildSchema({
         resolvers: [NFTResolver, UserResolver],
         validate: false,
     });
 
-    const apolloServer = new ApolloServer({ schema });
-    await apolloServer.start();
+    const apolloServer = new ApolloServer({
+        schema,
+        context: ({ req, res }) => ({ req, res }),
+        plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    });
 
-    const app = express();
+    await apolloServer.start();
     apolloServer.applyMiddleware({ app });
     const PORT = process.env.PORT || 5000;
 
     app.listen(PORT, () =>
-        console.log(`Server running on http://localhost:${PORT}`)
+        console.log(`Server running on http://localhost:${PORT}/graphql`)
     );
 };
 
