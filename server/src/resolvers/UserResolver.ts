@@ -1,5 +1,12 @@
 import * as argon2 from 'argon2';
-import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from 'type-graphql';
 import { User } from '../entities';
 import {
     LoginUserInput,
@@ -7,6 +14,7 @@ import {
     UpdatePasswordInput,
     UpdateUserInput,
 } from '../inputs';
+import { isAuthenticated } from '../middleware/isAuthenticated';
 import { ApolloContext } from '../types';
 
 @Resolver(User)
@@ -115,6 +123,7 @@ export class UserResolver {
      * @returns Boolean whether the update was successful
      */
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuthenticated)
     async updatePassword(
         @Arg('id') id: string,
         @Arg('options') options: UpdatePasswordInput
@@ -147,6 +156,7 @@ export class UserResolver {
      * @returns Boolean whether the update was successful
      */
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuthenticated)
     async updateUserInfo(
         @Arg('id') id: string,
         @Arg('options') options: UpdateUserInput
@@ -180,6 +190,7 @@ export class UserResolver {
      * @returns Boolean whether operation was successful or not
      */
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuthenticated)
     async deleteUser(@Arg('id') id: string): Promise<boolean> {
         await User.delete({ id });
         return true;

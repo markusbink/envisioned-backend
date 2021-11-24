@@ -1,6 +1,15 @@
-import { Arg, Mutation, Query, Resolver } from 'type-graphql';
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from 'type-graphql';
 import { NFT } from '../entities';
 import { CreateNFTInput, UpdateNFTInput } from '../inputs';
+import { isAuthenticated } from '../middleware/isAuthenticated';
+import { ApolloContext } from '../types';
 @Resolver(NFT)
 export class NFTResolver {
     /**
@@ -68,11 +77,15 @@ export class NFTResolver {
      * @returns A new NFT
      */
     @Mutation(() => NFT)
+    @UseMiddleware(isAuthenticated)
     async createNFT(
         @Arg('options', () => CreateNFTInput) options: CreateNFTInput,
-        @Arg('userId') userId: string
+        @Ctx() { req }: ApolloContext
     ): Promise<NFT> {
-        const nft = await NFT.create({ ...options, creatorId: userId }).save();
+        const nft = await NFT.create({
+            ...options,
+            creatorId: req.session.userId,
+        }).save();
         return nft;
     }
 
@@ -83,6 +96,7 @@ export class NFTResolver {
      * @returns Boolean whether operation was successful or not
      */
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuthenticated)
     async updateNFTById(
         @Arg('id') id: string,
         @Arg('options') options: UpdateNFTInput
@@ -97,6 +111,7 @@ export class NFTResolver {
      * @returns Boolean whether operation was successful or not
      */
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuthenticated)
     async deleteNFTById(@Arg('id') id: string): Promise<Boolean> {
         await NFT.delete({ id });
         return true;
