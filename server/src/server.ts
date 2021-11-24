@@ -53,7 +53,7 @@ const main = async () => {
     // Setting up Apollo Server
     const schema = await buildSchema({
         resolvers: [NFTResolver, UserResolver],
-        validate: false,
+        validate: true,
     });
 
     const apolloServer = new ApolloServer({
