@@ -28,7 +28,7 @@ export class User extends BaseEntity {
     password: string;
 
     @OneToOne(() => Profile, (profile) => profile.creator, { nullable: true })
-    profile?: Profile;
+    profile: Profile;
 
     @OneToMany(() => NFT, (nft) => nft.creator, { nullable: true })
     nfts?: NFT[];

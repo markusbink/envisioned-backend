@@ -1,10 +1,16 @@
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    BaseEntity,
+    Column,
+    Entity,
+    OneToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from '.';
 
 @Entity()
 @ObjectType()
-export class Profile {
+export class Profile extends BaseEntity {
     @Field(() => ID)
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -21,6 +27,6 @@ export class Profile {
     @Column()
     creatorId: string;
 
-    @OneToOne(() => User, (user) => user.profile)
+    @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
     creator: User;
 }

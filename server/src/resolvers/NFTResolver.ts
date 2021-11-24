@@ -35,7 +35,7 @@ export class NFTResolver {
             where: { id },
         });
         if (!nft) {
-            return null;
+            throw new Error('NFT with provided ID does not exist');
         }
         return nft;
     }

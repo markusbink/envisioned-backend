@@ -9,7 +9,7 @@ import redis from 'redis';
 import 'reflect-metadata';
 import { buildSchema } from 'type-graphql';
 import { createConnection } from 'typeorm';
-import { NFTResolver, UserResolver } from './resolvers/';
+import { NFTResolver, ProfileResolver, UserResolver } from './resolvers/';
 
 // Get environment variables
 dotenv.config({ path: './server/.env' });
@@ -52,7 +52,7 @@ const main = async () => {
 
     // Setting up Apollo Server
     const schema = await buildSchema({
-        resolvers: [NFTResolver, UserResolver],
+        resolvers: [NFTResolver, UserResolver, ProfileResolver],
         validate: true,
     });
 
