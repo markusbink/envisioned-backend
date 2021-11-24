@@ -29,6 +29,10 @@ export class ProfileResolver {
             throw new Error('Profile not found');
         }
 
+        if (profile.creatorId !== req.session.userId) {
+            throw new Error('User is not authorized to get this NFT');
+        }
+
         return profile;
     }
 
@@ -69,11 +73,11 @@ export class ProfileResolver {
         });
 
         if (!profile) {
-            throw new Error('NFT with provided ID does not exist');
+            throw new Error('Profile with provided ID does not exist');
         }
 
         if (profile.creatorId !== req.session.userId) {
-            throw new Error('User is not authorized to edit this NFT');
+            throw new Error('User is not authorized to edit this Profile');
         }
 
         await Profile.update({ creatorId: req.session!.userId }, options);
