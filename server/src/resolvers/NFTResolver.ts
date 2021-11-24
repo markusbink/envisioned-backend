@@ -1,7 +1,6 @@
-import { CreateNFTInput, UpdateNFTInput } from '../inputs';
-import { Arg, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Mutation, Query, Resolver } from 'type-graphql';
 import { NFT } from '../entities';
-
+import { CreateNFTInput, UpdateNFTInput } from '../inputs';
 @Resolver(NFT)
 export class NFTResolver {
     /**

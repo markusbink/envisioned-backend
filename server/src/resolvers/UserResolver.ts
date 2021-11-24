@@ -1,3 +1,4 @@
+import * as argon2 from 'argon2';
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import { User } from '../entities';
 import {
@@ -6,7 +7,6 @@ import {
     UpdatePasswordInput,
     UpdateUserInput,
 } from '../inputs';
-import * as argon2 from 'argon2';
 import { ApolloContext } from '../types';
 
 @Resolver(User)
@@ -32,6 +32,7 @@ export class UserResolver {
 
     /**
      * Gets currently logged in user
+     * @param context Context of the request
      * @returns User with specified ID
      */
     @Query(() => User, { nullable: true })
@@ -48,6 +49,7 @@ export class UserResolver {
     /**
      * Register a user with specified options
      * @param options Object with user information
+     * @param context Context of the request
      * @returns A new user
      */
     @Mutation(() => User)

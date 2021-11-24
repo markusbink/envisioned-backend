@@ -1,15 +1,15 @@
-import 'reflect-metadata';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
+import { ApolloServer } from 'apollo-server-express';
+import connectRedis from 'connect-redis';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
-import { ApolloServer } from 'apollo-server-express';
-import { buildSchema } from 'type-graphql';
-import { NFTResolver, UserResolver } from './resolvers/';
-import { createConnection } from 'typeorm';
-import redis from 'redis';
-import connectRedis from 'connect-redis';
 import session from 'express-session';
-import cors from 'cors';
-import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
+import redis from 'redis';
+import 'reflect-metadata';
+import { buildSchema } from 'type-graphql';
+import { createConnection } from 'typeorm';
+import { NFTResolver, UserResolver } from './resolvers/';
 
 // Get environment variables
 dotenv.config({ path: './server/.env' });
