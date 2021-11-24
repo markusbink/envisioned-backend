@@ -16,6 +16,7 @@ export class NFTResolver {
      * Get all NFTs in the database
      * @returns NFTs
      */
+    // TODO: add pagination and only load new NFTs if necessary
     @Query(() => [NFT], { nullable: true })
     async getAllNFTs(): Promise<NFT[] | null> {
         const nfts = await NFT.find({ relations: ['creator'] });

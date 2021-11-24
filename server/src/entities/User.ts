@@ -4,9 +4,10 @@ import {
     Column,
     Entity,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { NFT } from '.';
+import { NFT, Profile } from '.';
 
 @Entity()
 @ObjectType()
@@ -26,6 +27,9 @@ export class User extends BaseEntity {
     @Column()
     password: string;
 
+    @OneToOne(() => Profile, (profile) => profile.creator, { nullable: true })
+    profile?: Profile;
+
     @OneToMany(() => NFT, (nft) => nft.creator, { nullable: true })
-    nfts: NFT[];
+    nfts?: NFT[];
 }

@@ -54,11 +54,11 @@ export class NFT extends BaseEntity {
     @ManyToOne(() => User, (user) => user.nfts, { onDelete: 'CASCADE' })
     creator: User;
 
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, { nullable: true })
     @JoinTable()
     upvotes?: User[];
 
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, { nullable: true })
     @JoinTable()
     favorites?: User[];
 }
