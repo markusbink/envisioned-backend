@@ -69,9 +69,24 @@ export class UserResolver {
         const user = await User.findOne({
             where: [{ username: options.username }, { email: options.email }],
         });
+        if (!user) {
+            throw new Error('User does not exists');
+        }
 
-        if (user) {
-            throw new Error('User already exists');
+        // Check if username is already taken
+        const userWithUsername = await User.findOne({
+            where: { username: options.username },
+        });
+        if (userWithUsername) {
+            throw new Error('Username already exists');
+        }
+
+        // Check if email is already taken
+        const userWithEmail = await User.findOne({
+            where: { email: options.email },
+        });
+        if (userWithEmail) {
+            throw new Error('User with email already exists');
         }
 
         // Hash password
@@ -126,12 +141,17 @@ export class UserResolver {
     @UseMiddleware(isAuthenticated)
     async updatePassword(
         @Arg('id') id: string,
-        @Arg('options') options: UpdatePasswordInput
+        @Arg('options') options: UpdatePasswordInput,
+        @Ctx() { req }: ApolloContext
     ): Promise<Boolean> {
         const user = await User.findOne({ id });
 
         if (!user) {
             throw new Error('User does not exists');
+        }
+
+        if (user.id !== req.session.userId) {
+            throw new Error('User is not authorized to update the password');
         }
 
         const hashedNewPassword = await argon2.hash(options.newPassword);
@@ -159,13 +179,20 @@ export class UserResolver {
     @UseMiddleware(isAuthenticated)
     async updateUserInfo(
         @Arg('id') id: string,
-        @Arg('options') options: UpdateUserInput
+        @Arg('options') options: UpdateUserInput,
+        @Ctx() { req }: ApolloContext
     ): Promise<Boolean> {
+        // Check if user with given ID exists
         const user = await User.findOne({ id });
         if (!user) {
             throw new Error('User does not exists');
         }
 
+        if (user.id !== req.session.userId) {
+            throw new Error('User is not authorized to update the info');
+        }
+
+        // Check if username is already taken
         const userWithUsername = await User.findOne({
             where: { username: options.username },
         });
@@ -173,6 +200,7 @@ export class UserResolver {
             throw new Error('Username already exists');
         }
 
+        // Check if email is already taken
         const userWithEmail = await User.findOne({
             where: { email: options.email },
         });
@@ -192,6 +220,12 @@ export class UserResolver {
     @Mutation(() => Boolean)
     @UseMiddleware(isAuthenticated)
     async deleteUser(@Arg('id') id: string): Promise<boolean> {
+        // Check if user with given ID exists
+        const user = await User.findOne({ id });
+        if (!user) {
+            throw new Error('User does not exists');
+        }
+
         await User.delete({ id });
         return true;
     }

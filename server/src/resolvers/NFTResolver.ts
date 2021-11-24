@@ -99,8 +99,19 @@ export class NFTResolver {
     @UseMiddleware(isAuthenticated)
     async updateNFTById(
         @Arg('id') id: string,
-        @Arg('options') options: UpdateNFTInput
+        @Arg('options') options: UpdateNFTInput,
+        @Ctx() { req }: ApolloContext
     ): Promise<Boolean> {
+        const nft = await NFT.findOne(id);
+
+        if (!nft) {
+            throw new Error('NFT with provided ID does not exist');
+        }
+
+        if (nft.creatorId !== req.session.userId) {
+            throw new Error('User is not authorized to edit this NFT');
+        }
+
         await NFT.update({ id }, options);
         return true;
     }
@@ -112,7 +123,20 @@ export class NFTResolver {
      */
     @Mutation(() => Boolean)
     @UseMiddleware(isAuthenticated)
-    async deleteNFTById(@Arg('id') id: string): Promise<Boolean> {
+    async deleteNFTById(
+        @Arg('id') id: string,
+        @Ctx() { req }: ApolloContext
+    ): Promise<Boolean> {
+        const nft = await NFT.findOne(id);
+
+        if (!nft) {
+            throw new Error('NFT with provided ID does not exist');
+        }
+
+        if (nft.creatorId !== req.session.userId) {
+            throw new Error('User is not authorized to delete this NFT');
+        }
+
         await NFT.delete({ id });
         return true;
     }
