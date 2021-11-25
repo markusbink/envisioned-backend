@@ -1,3 +1,4 @@
+import { GraphQLError } from 'graphql';
 import { Connection } from 'typeorm';
 import {
     callGraphQL,
@@ -31,18 +32,37 @@ describe('UserResolver', () => {
         password: 'johndoepassword',
     };
 
-    it('should register a user with specified data', async () => {
-        const mutation = `
-            mutation registerMutation($options: RegisterUserInput!) {
-                register(options: $options) {
-                    username,
-                    email
-                }
+    const registerMutation = `
+        mutation registerMutation($options: RegisterUserInput!) {
+            register(options: $options) {
+                username,
+                email
             }
-        `;
+        }
+    `;
 
+    const loginMutation = `
+        mutation loginMutation($options: LoginUserInput!) {
+            login(options: $options) {
+                username,
+                email
+            }
+        }
+    `;
+
+    const getUsersQuery = `
+        query {
+            getUsers {
+                id
+                username
+                email
+            }
+        }
+    `;
+
+    it('should register a user with specified data', async () => {
         const response = await callGraphQL({
-            source: mutation,
+            source: registerMutation,
             variableValues: { options: data },
         });
 
@@ -52,23 +72,32 @@ describe('UserResolver', () => {
         });
     });
 
-    it('should login user with specified email and password', async () => {
-        const mutation = `
-            mutation loginMutation($options: LoginUserInput!) {
-                login(options: $options) {
-                    username,
-                    email
-                }
-            }
-        `;
+    it('should fail to register a user with too short password', async () => {
+        const response = await callGraphQL({
+            source: registerMutation,
+            variableValues: { options: { ...data, password: 'abc' } },
+        });
 
+        expect(response?.errors).toBeDefined();
+    });
+
+    it('should fail to register a user with invalid email', async () => {
+        const response = await callGraphQL({
+            source: registerMutation,
+            variableValues: { options: { ...data, email: 'john.doe' } },
+        });
+
+        expect(response?.errors).toBeDefined();
+    });
+
+    it('should login user with specified email and password', async () => {
         const loginOptions = {
             email: data.email,
             password: data.password,
         };
 
         const response = await callGraphQL({
-            source: mutation,
+            source: loginMutation,
             variableValues: {
                 options: loginOptions,
             },
@@ -76,5 +105,62 @@ describe('UserResolver', () => {
 
         expect(response?.data?.login).toHaveProperty('username', data.username);
         expect(response?.data?.login).not.toHaveProperty('password');
+    });
+
+    it('should fail to login user with non existant email', async () => {
+        const loginOptions = {
+            email: 'jane.doe@example.com',
+            password: data.password,
+        };
+
+        const response = await callGraphQL({
+            source: loginMutation,
+            variableValues: {
+                options: loginOptions,
+            },
+        });
+
+        expect(response?.errors).toBeDefined();
+    });
+
+    it('should query a list of all users', async () => {
+        const response = await callGraphQL({
+            source: getUsersQuery,
+        });
+
+        const users = response?.data?.getUsers;
+
+        expect(users).toBeDefined();
+        expect(users.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should query a user by id', async () => {
+        const response = await callGraphQL({
+            source: getUsersQuery,
+        });
+
+        const { id } = response?.data?.getUsers[0];
+
+        const userQuery = `
+            query getUserById($id: String!) {
+                getUser(id: $id) {
+                    id
+                    username
+                    email
+                }
+            }
+        `;
+
+        const userResponse = await callGraphQL({
+            source: userQuery,
+            variableValues: {
+                id,
+            },
+        });
+
+        const singleUser = userResponse?.data?.getUser;
+
+        expect(singleUser).toBeDefined();
+        expect(singleUser.id).toBe(id);
     });
 });
