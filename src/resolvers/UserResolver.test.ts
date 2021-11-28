@@ -1,4 +1,3 @@
-import { GraphQLError } from 'graphql';
 import { Connection } from 'typeorm';
 import {
     callGraphQL,

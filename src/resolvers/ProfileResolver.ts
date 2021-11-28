@@ -23,6 +23,7 @@ export class ProfileResolver {
     async getProfile(@Ctx() { req }: ApolloContext) {
         const profile = await Profile.findOne({
             where: { creatorId: req.session!.userId },
+            relations: ['creator'],
         });
 
         if (!profile) {
@@ -30,7 +31,7 @@ export class ProfileResolver {
         }
 
         if (profile.creatorId !== req.session.userId) {
-            throw new Error('User is not authorized to get this NFT');
+            throw new Error('User is not authorized to get this Profile');
         }
 
         return profile;
@@ -62,12 +63,12 @@ export class ProfileResolver {
      * @param context ApolloContext
      * @returns Boolean wheter the update was successful
      */
-    @Mutation(() => Profile)
+    @Mutation(() => Boolean)
     @UseMiddleware(isAuthenticated)
     async updateProfile(
         @Arg('options') options: UpdateProfileInput,
         @Ctx() { req }: ApolloContext
-    ) {
+    ): Promise<boolean> {
         const profile = await Profile.findOne({
             creatorId: req.session!.userId,
         });
@@ -81,6 +82,7 @@ export class ProfileResolver {
         }
 
         await Profile.update({ creatorId: req.session!.userId }, options);
+
         return true;
     }
 }

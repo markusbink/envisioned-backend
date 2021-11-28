@@ -7,7 +7,7 @@ interface GraphQLArgsOptions {
     variableValues?: Maybe<{
         [key: string]: any;
     }>;
-    userId?: string;
+    userId?: string | null;
 }
 
 let schema: GraphQLSchema;
