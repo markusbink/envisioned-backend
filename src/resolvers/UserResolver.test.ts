@@ -50,7 +50,7 @@ describe('UserResolver', () => {
     `;
 
     const getUsersQuery = `
-        query {
+        query getUsersQuery{
             getUsers {
                 id
                 username

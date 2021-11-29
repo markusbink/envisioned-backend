@@ -97,6 +97,29 @@ describe('ProfileResovler', () => {
         );
     });
 
+    it('should fail to create a profile if it already exists', async () => {
+        // Get a user
+        const getUsersResponse = await callGraphQL({
+            source: getUsersQuery,
+        });
+
+        const { id } = getUsersResponse?.data?.getUsers[0];
+
+        // Try to create a profile for user with specified id
+        const profileReponse = await callGraphQL({
+            source: createProfileMutation,
+            variableValues: {
+                options: createProfileOptions,
+            },
+            userId: id,
+        });
+
+        expect(profileReponse.errors).toBeDefined();
+        expect(profileReponse.errors?.[0].message).toBe(
+            'Profile already exists'
+        );
+    });
+
     it('should update the profile with the specified data', async () => {
         // Get a user
         const getUsersResponse = await callGraphQL({
@@ -145,7 +168,7 @@ describe('ProfileResovler', () => {
             variableValues: {
                 options: updateProfileOptions,
             },
-            userId: 'non-existant-user-id',
+            userId: '62fbab2e-736f-48dd-aa53-9840cf8e593f',
         });
 
         expect(profileResponse.errors?.[0].message).toBe(
@@ -166,6 +189,59 @@ describe('ProfileResovler', () => {
         expect(profileReponse.errors).toBeDefined();
         expect(profileReponse.errors?.[0].message).toBe(
             'Not authenticated to perform the requested action.'
+        );
+    });
+
+    it('should fail to retrieve a profile for non-existant user', async () => {
+        const getProfileQuery = `
+            query getProfileQuery {
+                getProfile {
+                    id
+                    creator {
+                        username
+                    }
+                }
+            }
+        `;
+
+        const profileResponse = await callGraphQL({
+            source: getProfileQuery,
+            userId: '62fbab2e-736f-48dd-aa53-9840cf8e593f',
+        });
+
+        expect(profileResponse.errors?.[0].message).toBe('Profile not found');
+    });
+
+    it('should query the profile of the current user', async () => {
+        // Get a user
+        const getUsersResponse = await callGraphQL({
+            source: getUsersQuery,
+        });
+
+        const { id } = getUsersResponse?.data?.getUsers[0];
+
+        const getProfileQuery = `
+            query getProfileQuery {
+                getProfile {
+                    id
+                    bio
+                    profileImageURI
+                    creator {
+                        username
+                        email
+                    }
+                }
+            }
+        `;
+
+        const profileResponse = await callGraphQL({
+            source: getProfileQuery,
+            userId: id,
+        });
+
+        expect(profileResponse.data?.getProfile).toHaveProperty('bio');
+        expect(profileResponse.data?.getProfile).toHaveProperty(
+            'profileImageURI'
         );
     });
 });

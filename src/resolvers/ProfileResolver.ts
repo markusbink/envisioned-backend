@@ -6,6 +6,7 @@ import {
     Resolver,
     UseMiddleware,
 } from 'type-graphql';
+import { getRepository } from 'typeorm';
 import { Profile } from '../entities';
 import { CreateProfileInput, UpdateProfileInput } from '../inputs';
 import { isAuthenticated } from '../middleware/isAuthenticated';
@@ -20,18 +21,14 @@ export class ProfileResolver {
      */
     @Query(() => Profile)
     @UseMiddleware(isAuthenticated)
-    async getProfile(@Ctx() { req }: ApolloContext) {
+    async getProfile(@Ctx() { req }: ApolloContext): Promise<Profile> {
         const profile = await Profile.findOne({
-            where: { creatorId: req.session!.userId },
             relations: ['creator'],
+            where: { creatorId: req.session!.userId },
         });
 
         if (!profile) {
             throw new Error('Profile not found');
-        }
-
-        if (profile.creatorId !== req.session.userId) {
-            throw new Error('User is not authorized to get this Profile');
         }
 
         return profile;
@@ -48,7 +45,15 @@ export class ProfileResolver {
     async createProfile(
         @Arg('options') options: CreateProfileInput,
         @Ctx() { req }: ApolloContext
-    ) {
+    ): Promise<Profile> {
+        const existingProfile = await Profile.findOne({
+            where: { creatorId: req.session!.userId },
+        });
+
+        if (existingProfile) {
+            throw new Error('Profile already exists');
+        }
+
         const profile = Profile.create({
             ...options,
             creatorId: req.session!.userId,
@@ -75,10 +80,6 @@ export class ProfileResolver {
 
         if (!profile) {
             throw new Error('Profile with provided ID does not exist');
-        }
-
-        if (profile.creatorId !== req.session.userId) {
-            throw new Error('User is not authorized to edit this Profile');
         }
 
         await Profile.update({ creatorId: req.session!.userId }, options);

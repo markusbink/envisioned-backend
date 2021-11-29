@@ -3,6 +3,7 @@ import {
     BaseEntity,
     Column,
     Entity,
+    JoinColumn,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -27,7 +28,8 @@ export class User extends BaseEntity {
     @Column()
     password: string;
 
-    @OneToOne(() => Profile, (profile) => profile.creator, { nullable: true })
+    @Field(() => Profile)
+    @OneToOne(() => Profile, (profile) => profile.creator)
     profile: Profile;
 
     @OneToMany(() => NFT, (nft) => nft.creator, { nullable: true })

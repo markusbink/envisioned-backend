@@ -3,6 +3,7 @@ import {
     BaseEntity,
     Column,
     Entity,
+    JoinColumn,
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -27,6 +28,8 @@ export class Profile extends BaseEntity {
     @Column()
     creatorId: string;
 
+    @Field(() => User)
     @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
+    @JoinColumn()
     creator: User;
 }
