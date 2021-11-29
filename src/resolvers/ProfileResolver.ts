@@ -6,7 +6,6 @@ import {
     Resolver,
     UseMiddleware,
 } from 'type-graphql';
-import { getRepository } from 'typeorm';
 import { Profile } from '../entities';
 import { CreateProfileInput, UpdateProfileInput } from '../inputs';
 import { isAuthenticated } from '../middleware/isAuthenticated';
