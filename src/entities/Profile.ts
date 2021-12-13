@@ -3,10 +3,11 @@ import {
     BaseEntity,
     Column,
     Entity,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '.';
+import { Social, User } from '.';
 
 @Entity()
 @ObjectType()
@@ -29,4 +30,8 @@ export class Profile extends BaseEntity {
 
     @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
     creator: User;
+
+    @Field(() => Social)
+    @OneToMany(() => Social, (social) => social.profile, { nullable: true })
+    socials?: Social[];
 }

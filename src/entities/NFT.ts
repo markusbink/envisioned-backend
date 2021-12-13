@@ -10,6 +10,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '.';
+import { Marketplace } from './Marketplace';
 
 @Entity()
 @ObjectType()
@@ -61,4 +62,8 @@ export class NFT extends BaseEntity {
     @ManyToMany(() => User, { nullable: true })
     @JoinTable()
     favorites?: User[];
+
+    @ManyToMany(() => Marketplace, { nullable: true })
+    @JoinTable()
+    marketplaces?: Marketplace[];
 }
